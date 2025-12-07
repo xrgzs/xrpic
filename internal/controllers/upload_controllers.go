@@ -87,6 +87,14 @@ func (uc *UploadController) handleFormUpload(c *gin.Context) {
 		for _, file := range files {
 			result, err := uc.fileService.SaveUploadedFile(file)
 			if err != nil {
+				// 检查是否是文件大小超限错误
+				if strings.Contains(err.Error(), "exceeds maximum allowed size") {
+					c.JSON(http.StatusRequestEntityTooLarge, models.UploadResponse{
+						Success: false,
+						Message: "File size exceeds maximum allowed size",
+					})
+					return
+				}
 				c.JSON(http.StatusInternalServerError, models.UploadResponse{
 					Success: false,
 					Message: fmt.Sprintf("Failed to save file: %v", err),

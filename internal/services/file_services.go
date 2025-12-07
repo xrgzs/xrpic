@@ -10,10 +10,10 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"xrpic/internal/app/config"
-	"xrpic/internal/models"
 	"strings"
 	"time"
+	"xrpic/internal/app/config"
+	"xrpic/internal/models"
 
 	"github.com/google/uuid"
 )
@@ -33,6 +33,11 @@ func NewFileService(cfg config.Config) *FileService {
 
 // 保存上传的文件
 func (fs *FileService) SaveUploadedFile(file *multipart.FileHeader) (models.FullResult, error) {
+	// 检查文件大小
+	if file.Size > fs.config.Storage.MaxFileSize {
+		return models.FullResult{}, fmt.Errorf("file size %d exceeds maximum allowed size of %d bytes", file.Size, fs.config.Storage.MaxFileSize)
+	}
+
 	src, err := file.Open()
 	if err != nil {
 		return models.FullResult{}, err

@@ -15,4 +15,5 @@ services:
       # - APP_SERVER_HOST=0.0.0.0
       # - APP_SERVER_PORT=36677
       # - APP_STORAGE_BASE_URL=http://img.example.com
-      # - APP_STORAGE_PATH=/app/uploads
+      # - APP_STORAGE_UPLOAD_DIR=/app/uploads
+      # - APP_STORAGE_MAX_FILE_SIZE=10485760

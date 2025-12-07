@@ -14,8 +14,9 @@ type Config struct {
 		Port int    `mapstructure:"port"`
 	} `mapstructure:"server"`
 	Storage struct {
-		UploadDir string `mapstructure:"upload_dir"`
-		BaseURL   string `mapstructure:"base_url"`
+		UploadDir   string `mapstructure:"upload_dir"`
+		BaseURL     string `mapstructure:"base_url"`
+		MaxFileSize int64  `mapstructure:"max_file_size"`
 	} `mapstructure:"storage"`
 	Auth struct {
 		Enabled   bool   `mapstructure:"enabled"`
@@ -80,6 +81,7 @@ func setConfigDefaults() {
 	viper.SetDefault("server.port", 36677)
 	viper.SetDefault("storage.upload_dir", "./uploads")
 	viper.SetDefault("storage.base_url", "https://uploads.example.com")
+	viper.SetDefault("storage.max_file_size", 10*1024*1024) // 默认 10MB
 	viper.SetDefault("auth.enabled", false)
 	viper.SetDefault("auth.secret_key", "")
 }
@@ -100,6 +102,10 @@ func validateConfig() error {
 
 	if Conf.Auth.Enabled && Conf.Auth.SecretKey == "" {
 		return fmt.Errorf("secret_key cannot be empty when auth is enabled")
+	}
+
+	if Conf.Storage.MaxFileSize <= 0 {
+		return fmt.Errorf("max_file_size must be greater than 0")
 	}
 
 	return nil
