@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"path/filepath"
 	"strings"
 
 	"github.com/spf13/viper"
@@ -26,6 +27,7 @@ var Conf Config
 
 // 加载配置
 func LoadConfig() error {
+	var err error
 	// 设置默认值
 	setConfigDefaults()
 
@@ -41,7 +43,7 @@ func LoadConfig() error {
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
 	// 读取配置文件（如果不存在则使用默认值）
-	if err := viper.ReadInConfig(); err != nil {
+	if err = viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 			fmt.Println("Config file not found, using defaults and creating config.json...")
 			if err := viper.SafeWriteConfigAs("config.json"); err != nil {
@@ -53,12 +55,16 @@ func LoadConfig() error {
 	}
 
 	// 解析配置到结构体
-	if err := viper.Unmarshal(&Conf); err != nil {
+	if err = viper.Unmarshal(&Conf); err != nil {
 		return fmt.Errorf("failed to unmarshal config: %v", err)
 	}
 
 	// 后处理
 	Conf.Storage.BaseURL = strings.TrimSuffix(Conf.Storage.BaseURL, "/")
+	// 将相对路径改成绝对路径
+	if Conf.Storage.UploadDir, err = filepath.Abs(Conf.Storage.UploadDir); err != nil {
+		return fmt.Errorf("failed to get absolute path: %v", err)
+	}
 
 	// 验证配置
 	if err := validateConfig(); err != nil {
@@ -72,8 +78,8 @@ func LoadConfig() error {
 func setConfigDefaults() {
 	viper.SetDefault("server.host", "0.0.0.0")
 	viper.SetDefault("server.port", 36677)
-	viper.SetDefault("storage.upload_dir", "./uploads/images")
-	viper.SetDefault("storage.base_url", "https://uploads.example.com/images")
+	viper.SetDefault("storage.upload_dir", "./uploads")
+	viper.SetDefault("storage.base_url", "https://uploads.example.com")
 	viper.SetDefault("auth.enabled", false)
 	viper.SetDefault("auth.secret_key", "")
 }
